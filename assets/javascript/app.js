@@ -2,7 +2,7 @@ $(document).ready(function() {
   console.log('ready');
 });
 
-
+var imgURLs = ['assets/images/headshot.jpg', 'assets/images/headshot2.jpg'];
 
 
 //firebase
@@ -21,16 +21,12 @@ var db = firebase.database();
 var players = db.ref('players');
 var user = players.push();
 
-var userObj = {
-  name: '',
-  status: ''
-};
 
 
 db.ref('.info/connected').on('value', function(snap) {
   if(snap.val()) {
     user.onDisconnect().remove();
-    user.set({status: 'online'});
+    user.set({status: 'online', wins: 0, losses: 0});
   } 
 });
 
@@ -40,8 +36,28 @@ $('#submit-btn').on('click', function(e) {
   e.preventDefault();
   user.update({
     name: $('#name').val(),
-    wins: 0,
-    losses: 0
   }); 
-  console.log(userObj.name);
+
+  $('#player-form').hide();
+
+  $(user-name).text();
+ 
+  
+});
+
+user.on('value', function(snap) {
+  var data = snap.val();
+
+  $('.user-name').text(data.name);
+  $('.wins').text(data.wins);
+  $('.losses').text(data.losses);
+  $('.status').text(data.status);
+});
+
+user.on('child_added', function(snap) {
+  console.log(snap.val());
+});
+
+$('body').on('click', function() {
+  console.log(db.ref(user + '/name'));
 });
