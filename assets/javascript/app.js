@@ -4,6 +4,8 @@ $(document).ready(function() {
 
 var imgURLs = ['assets/images/headshot.jpg', 'assets/images/headshot2.jpg'];
 
+var players = [];
+
 
 //firebase
 var config = {
@@ -17,47 +19,128 @@ var config = {
 firebase.initializeApp(config);
 
 var db = firebase.database();
+var games = db.ref().child('games');
 
-var players = db.ref('players');
+var i = 1;
+
+var game = games.child('game');
+var players = game.child('players');
 var user = players.push();
 
 
+console.log(game);
 
 db.ref('.info/connected').on('value', function(snap) {
   if(snap.val()) {
     user.onDisconnect().remove();
-    user.set({status: 'online', wins: 0, losses: 0});
+    user.set({
+      status: 'online',
+      wins: 0,
+      losses: 0
+    });
   } 
 });
+
+
+
+// player1.child('opponent').update({
+//   opponent: {
+//     name: 'hershey'
+//   }
+// });
+var player1, player2;
 
 
 $('#submit-btn').on('click', function(e) {
 
   e.preventDefault();
-  user.update({
-    name: $('#name').val(),
-  }); 
+  
+  
 
   $('#player-form').hide();
 
-  $(user-name).text();
  
-  
+  game.once('value').then(function(snap) {
+    console.log(snap.val());
+    if (!snap.val().player1) {
+      player1 = game.child('player1');
+      player1.set({
+        name:$('#name').val()
+      });
+      user.update({
+        name: $('#name').val(),
+        player: 'player1'
+      });
+      console.log(user.key);
+    } else {
+      player2 = game.child('player2');
+      player2.set({
+        name:$('#name').val()
+      });
+      user.update({
+        name: $('#name').val(),
+        player: 'player2'
+      });
+      console.log(user.key());  
+    }
+  });
 });
 
-user.on('value', function(snap) {
-  var data = snap.val();
-
-  $('.user-name').text(data.name);
-  $('.wins').text(data.wins);
-  $('.losses').text(data.losses);
-  $('.status').text(data.status);
+$('#select-choice-btn').click(function(e) {
+  e.preventDefault();
+  console.log($('input[name=weapon]:checked').val());
+  user.update({
+    choice: $('input[name=weapon]:checked').val()
+  });
+  user.once('value').then(function(snap) {
+    if (snap.val().player === 'player1') {
+      player1.update({
+        choice: $('input[name=weapon]:checked').val()
+      });
+    } else {
+      player2.update({
+        choice: $('input[name=weapon]:checked').val()
+      });
+    }
+  });
 });
 
-user.on('child_added', function(snap) {
-  console.log(snap.val());
-});
 
-$('body').on('click', function() {
-  console.log(db.ref(user + '/name'));
-});
+// user.on('value', function(snap) {
+//   var data = snap.val();
+
+//   $('.user-name').text(data.name);
+//   $('.wins').text(data.wins);
+//   $('.losses').text(data.losses);
+//   $('.status').text(data.status);
+// });
+
+// game.orderByValue().limitToFirst(1).on('value', function(snap) {
+//   console.log(snap.val());
+//   var data = snap.val();
+
+//   $('.user-name').text(data.name);
+//   $('.wins').text(data.wins);
+//   $('.losses').text(data.losses);
+//   $('.status').text(data.status);
+// });
+
+// game.orderByValue().limitToLast(1).on('value', function(snap) {
+//   console.log(snap.val());
+//   var data = snap.val();
+
+//   $('.user-name').text(data.name);
+//   $('.wins').text(data.wins);
+//   $('.losses').text(data.losses);
+//   $('.status').text(data.status);
+
+// });
+
+// user.parent.on('value', function(snap) {
+//   console.log(snap.val());
+//   if (!snap.val().player1) {
+    
+//   }
+// });
+
+
