@@ -28,7 +28,6 @@ var players = game.child('players');
 var user = players.push();
 
 
-console.log(game);
 
 db.ref('.info/connected').on('value', function(snap) {
   if(snap.val()) {
@@ -42,13 +41,7 @@ db.ref('.info/connected').on('value', function(snap) {
 });
 
 
-
-// player1.child('opponent').update({
-//   opponent: {
-//     name: 'hershey'
-//   }
-// });
-var player1, player2;
+var player1, player2, user1, user2;
 
 
 $('#submit-btn').on('click', function(e) {
@@ -59,32 +52,43 @@ $('#submit-btn').on('click', function(e) {
 
   $('#player-form').hide();
 
- 
+
   game.once('value').then(function(snap) {
     console.log(snap.val());
     if (!snap.val().player1) {
       player1 = game.child('player1');
+      user1 = players.child(user.key);
       player1.set({
-        name:$('#name').val()
+        name:$('#name').val(),
+        userKey: user.key
       });
       user.update({
         name: $('#name').val(),
-        player: 'player1'
+        player: 'player1',
+        userKey: user.key
       });
-      console.log(user.key);
+      
     } else {
       player2 = game.child('player2');
+      user2 = players.child(user.key);
       player2.set({
-        name:$('#name').val()
+        name:$('#name').val(),
+        userKey: user.key
       });
       user.update({
         name: $('#name').val(),
-        player: 'player2'
+        player: 'player2',
+        userKey: user.key
       });
-      console.log(user.key());  
+      
     }
+    
+    
   });
+  
+  
 });
+
 
 $('#select-choice-btn').click(function(e) {
   e.preventDefault();
@@ -103,17 +107,24 @@ $('#select-choice-btn').click(function(e) {
       });
     }
   });
+  game.once('value').then(function(snap) {
+    if (snap.val().player1.choice && snap.val().player2.choice) {
+      console.log(snap.val().player1.choice, snap.val().player2.choice)
+      var winMessage = chooseWinner(snap.val().player1.choice, snap.val().player2.choice);
+      game.update({winMessage: winMessage});
+    }
+  });
 });
 
 
-// user.on('value', function(snap) {
-//   var data = snap.val();
+user.on('value', function(snap) {
+  var data = snap.val();
 
-//   $('.user-name').text(data.name);
-//   $('.wins').text(data.wins);
-//   $('.losses').text(data.losses);
-//   $('.status').text(data.status);
-// });
+  $('.user-name').text(data.name);
+  $('.wins').text(data.wins);
+  $('.losses').text(data.losses);
+  $('.status').text(data.status);
+});
 
 // game.orderByValue().limitToFirst(1).on('value', function(snap) {
 //   console.log(snap.val());
@@ -143,4 +154,32 @@ $('#select-choice-btn').click(function(e) {
 //   }
 // });
 
-
+function chooseWinner(p1Choice, p2Choice) {
+  if (p1Choice === 'rock' && p2Choice === 'rock') {
+    return 'The result is a tie!'
+  }
+  if (p1Choice === 'rock' && p2Choice === 'paper') {
+    return 'Player 2 Wins!'
+  }
+  if (p1Choice === 'rock' && p2Choice === 'scissors') {
+    return 'Player 1 Wins!'
+  }
+  if (p1Choice === 'paper' && p2Choice === 'rock') {
+    return 'Player 1 Wins!'
+  }
+  if (p1Choice === 'paper' && p2Choice === 'paper') {
+    return 'The result is a tie!'
+  }
+  if (p1Choice === 'paper' && p2Choice === 'scissors') {
+    return 'Player 2 Wins!'
+  }
+  if (p1Choice === 'scissors' && p2Choice === 'rock') {
+    return 'Player 2 Wins!'
+  }
+  if (p1Choice === 'scissors' && p2Choice === 'paper') {
+    return 'Player 1 Wins!'
+  }
+  if (p1Choice === 'scissors' && p2Choice === 'scissors') {
+    return 'The result is a tie!'
+  }
+}
